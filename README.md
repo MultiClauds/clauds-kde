@@ -103,8 +103,8 @@ repository, so apt installs it and updates it with the rest of your system.
 **From the LemcheNET apt repository** (Kubuntu 26.04, amd64):
 
 ```bash
-curl -fsSLO https://products.lemche.net/apt/lemchenet-archive-keyring.deb
-sudo apt install ./lemchenet-archive-keyring.deb
+curl -fsSLo /tmp/lemchenet-archive-keyring.deb https://products.lemche.net/apt/lemchenet-archive-keyring.deb
+sudo apt install /tmp/lemchenet-archive-keyring.deb
 sudo apt update
 sudo apt install clauds
 ```
