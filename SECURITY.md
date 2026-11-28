@@ -41,15 +41,15 @@ Do not attach these files to a report or an issue. They can identify you or your
 - The files and folders that the app makes are private to your user (folders `700`, files `600`).
 - The `.deb` runs without a sandbox, with the rights of your user. It must rename folders in
   `~/.config` and `~/.local/share`, and it must find, quit, and start the Claude app.
-- The Flatpak is not a strong sandbox. It has access to the Claude data folder and permission to
-  run commands on the host (`org.freedesktop.Flatpak`), for the same reason.
 
 ## About the packages
 
-Every merge to `main` makes a GitHub release with a Flatpak (experimental). The `.deb` has no
-download: you build it from the source code, with `make install`. You can also build the Flatpak
-with `make flatpak-install`. The build uses the Qt and KDE Frameworks packages of
-your distribution.
+Every merge to `main` makes a GitHub release with a `.deb`, built by GitHub Actions on Ubuntu 26.04
+with the Qt and KDE Frameworks packages of that release. The same `.deb` goes to the apt repository
+on https://products.lemche.net/clauds-kde/apt. The repository is signed with a key that only the
+release workflow uses (the secret `APT_SIGNING_KEY`). apt refuses packages whose signature does not
+match the key in `/usr/share/keyrings/clauds-archive-keyring.gpg`. You can also build the `.deb`
+from the source code, with `make install`.
 
 ## Scope
 

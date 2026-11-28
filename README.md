@@ -96,21 +96,22 @@ is signed out.
 > [!WARNING]
 > This is an early version (0.x). Make a [backup](#development) before the first switch.
 
-Every merge to `main` makes a release with a Flatpak. You can also build the package on your computer.
-This takes a few minutes.
+Every merge to `main` makes a release. The `.deb` goes to the
+[latest release](https://github.com/LemcheNET/clauds-kde/releases/latest) and to a signed apt
+repository, so apt installs it and updates it with the rest of your system.
 
-**Flatpak, from a release** (experimental): download
-`io.github.multiclauds.clauds-kde-<version>.flatpak` from the
-[latest release](https://github.com/LemcheNET/clauds-kde/releases/latest), then:
+**From the apt repository** (Kubuntu 26.04, amd64):
 
 ```bash
-flatpak install --user io.github.multiclauds.clauds-kde-<version>.flatpak
-flatpak run io.github.multiclauds.clauds-kde
+sudo curl -fsSLo /usr/share/keyrings/clauds-archive-keyring.gpg \
+  https://products.lemche.net/clauds-kde/apt/clauds-archive-keyring.gpg
+sudo curl -fsSLo /etc/apt/sources.list.d/clauds.sources \
+  https://products.lemche.net/clauds-kde/apt/clauds.sources
+sudo apt update
+sudo apt install clauds
 ```
 
-The Flatpak needs the KDE runtime (`org.kde.Platform//6.10`) from Flathub. It finds the Claude
-desktop app that is installed on your computer (for example the `.deb` package) and starts and quits
-it on the host. It works on your real `~/.config/Claude` and `~/.local/share/clauds`.
+The apt repository serves the `.deb` of the last five releases.
 
 **Build from source:**
 
@@ -126,8 +127,8 @@ Then start **Clauds** from the application launcher. The icon appears in the sys
 
 | Package | Command | State |
 | --- | --- | --- |
-| `.deb` | `make deb`, or `make install` to also install it | The supported way. CI builds it on Ubuntu 26.04. |
-| Flatpak | A release download, or `make flatpak-deps`, then `make flatpak-install` | Experimental. See [kde/packaging/flatpak](kde/packaging/flatpak). `make flatpak` writes `build-flatpak/io.github.multiclauds.clauds-kde.flatpak`. |
+| `.deb` from apt | `sudo apt install clauds` after the steps above | The supported way. CI builds it on Ubuntu 26.04. |
+| `.deb` from source | `make deb`, or `make install` to also install it | Same package, built with your Qt and KDE Frameworks. |
 
 `make help` lists every target. The version number follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). See
@@ -135,15 +136,16 @@ Then start **Clauds** from the application launcher. The icon appears in the sys
 
 ### Updates
 
-The app does not update itself, and it does not look for new versions. To update:
+The app does not update itself, and it does not look for new versions. apt does it: a new release
+comes with your normal system updates (Discover, or `sudo apt update && sudo apt upgrade`).
+
+If you built from source:
 
 ```bash
 cd clauds-kde
 git pull
 make install
 ```
-
-For the Flatpak, install the bundle of the newer release the same way as the first time.
 
 An update keeps your accounts and logins. Quit Clauds before you install, and start it again after.
 
@@ -298,8 +300,9 @@ When there are no live numbers, the card says why:
 - **No sandbox for the `.deb`.** The app must rename folders in `~/.config` and `~/.local/share`,
   and it must find, quit, and start Claude. Read the code before you run it. The port is about
   3,800 lines.
-- **The Flatpak is not a strong sandbox.** For the same reason, it asks for access to the Claude
-  data folder and for permission to run commands on the host.
+- **The apt repository is signed.** apt checks every update against the key in
+  `/usr/share/keyrings/clauds-archive-keyring.gpg`, and the repository is used only for packages
+  that come from it (`Signed-By`).
 
 To report a security problem, read [SECURITY.md](SECURITY.md).
 
@@ -363,7 +366,8 @@ goes away.
 3. Click the account that you want to keep in the Claude app. It becomes the current account.
 4. Turn off **More > Start at Login**.
 5. Quit Clauds and remove the package: `make uninstall`, or `sudo apt remove clauds`.
-   For the Flatpak: `make flatpak-uninstall`, or `flatpak uninstall io.github.multiclauds.clauds-kde`.
+   To also remove the apt repository:
+   `sudo rm /etc/apt/sources.list.d/clauds.sources /usr/share/keyrings/clauds-archive-keyring.gpg`.
 
 The folder `~/.local/share/clauds` still holds the saved data of your other accounts, and sessions
 that no account owns. Make a backup of it before you delete it:
@@ -391,8 +395,8 @@ make            # configure and build
 make test       # run the test suites
 make run        # start the app from the build folder
 make deb        # build the .deb
-make flatpak    # build the Flatpak bundle (experimental)
-make clean      # delete the build folders (.deb and Flatpak)
+make apt-repo   # build a local apt repository with the .deb in build-apt/
+make clean      # delete the build folders
 ```
 
 - The code is in [`kde/`](kde/): `src/core` (Qt Core only, with the tests) and `src/app` (tray,

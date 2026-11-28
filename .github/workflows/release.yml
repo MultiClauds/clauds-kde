@@ -1,14 +1,17 @@
 name: Release
 
 # Every merge to main is a release: the version comes from scripts/next-version.sh (Semantic
-# Versioning, from the commit titles since the last tag), the Flatpak is built with that version,
-# the tag vX.Y.Z is created and the Flatpak is attached to a GitHub release.
+# Versioning, from the commit titles since the last tag), the .deb is built with that version on
+# Ubuntu 26.04, the tag vX.Y.Z is created, the .deb is attached to a GitHub release, and the apt
+# repository on https://products.lemche.net/clauds-kde/apt is rebuilt (pages.yml), so
+# `sudo apt update && sudo apt upgrade` picks up the new version.
 # Put [skip release] in the merge commit message to merge without a release.
 
 on:
   push:
     branches: [main]
-  # A pull request that touches the build builds the Flatpak too, but makes no tag and no release.
+  # A pull request that touches the build builds the .deb and the apt repository too, but makes no
+  # tag, no release and no deploy.
   pull_request:
     paths:
       - ".github/workflows/release.yml"
@@ -16,6 +19,7 @@ on:
       - "VERSION"
       - "scripts/**"
       - "kde/packaging/**"
+      - "kde/CMakeLists.txt"
       - "kde/src/app/CMakeLists.txt"
 
 permissions:
@@ -27,17 +31,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  flatpak:
+  version:
     if: ${{ !contains(github.event.head_commit.message, '[skip release]') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
-    permissions:
-      contents: write   # creates the tag and the release
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      skip: ${{ steps.version.outputs.skip }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0   # the version needs the history and the tags
           fetch-tags: true
+          persist-credentials: false
 
       - name: Pick the version
         id: version
@@ -51,71 +56,76 @@ jobs:
           fi
           echo "Release version: $version"
 
+  deb:
+    needs: version
+    if: needs.version.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    # The .deb is for Kubuntu 26.04, so it is built against the Qt and KDE Frameworks of 26.04.
+    container: ubuntu:26.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Put the version in the build
-        if: steps.version.outputs.skip != 'true'
-        run: echo "${{ steps.version.outputs.version }}" > VERSION
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: echo "$VERSION" > VERSION
 
-      - name: Install Flatpak and flatpak-builder
-        if: steps.version.outputs.skip != 'true'
+      - name: Install Qt 6 and KDE Frameworks 6
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt-get update
-          # elfutils has eu-strip and eu-elfcompress, which flatpak-builder runs on the debug info.
-          sudo apt-get install -y --no-install-recommends flatpak elfutils dbus dbus-daemon dbus-user-session
-          # Ubuntu 24.04 blocks the user namespaces that flatpak-builder needs.
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          # The flatpak-builder and AppStream of Ubuntu 24.04 are too old: AppStream cannot read the
-          # rewritten .desktop file. The current flatpak-builder comes from Flathub. It runs in its own
-          # sandbox, so it installs the KDE runtime, SDK and Qt WebEngine base itself (--install-deps-from).
-          flatpak install --user --noninteractive flathub org.flatpak.Builder
+          apt-get update
+          apt-get install -y --no-install-recommends cmake g++ make file dpkg-dev apt-utils extra-cmake-modules \
+            qt6-base-dev qt6-declarative-dev qt6-webengine-dev libgl-dev \
+            libkf6statusnotifieritem-dev libkf6notifications-dev libkf6coreaddons-dev libkf6colorscheme-dev
 
-      - name: Build the Flatpak
-        if: steps.version.outputs.skip != 'true'
-        # org.flatpak.Builder runs in a sandbox and calls flatpak on the host over D-Bus. A CI runner has
-        # no session bus, so dbus-run-session starts one for this command.
+      - name: Build, test and package
         run: |
-          dbus-run-session -- make \
-            FLATPAK_BUILDER="flatpak run org.flatpak.Builder --disable-rofiles-fuse --install-deps-from=flathub" \
-            flatpak
+          make BUILD_TYPE=RelWithDebInfo test
+          make deb
+          dpkg-deb --info build-kde/clauds_*.deb
 
-      - name: Show why the build failed
-        if: failure()
-        run: |
-          echo "--- appstreamcli and flatpak-builder versions"
-          appstreamcli --version; dbus-run-session -- flatpak run org.flatpak.Builder --version
-          echo "--- files that AppStream reads"
-          ls -laR build-flatpak/app/files/share/metainfo build-flatpak/app/files/share/applications || true
-          cat build-flatpak/app/files/share/metainfo/*.metainfo.xml || true
-          cat -A build-flatpak/app/files/share/applications/*.desktop || true
-          echo "--- appstreamcli compose, verbose"
-          appstreamcli compose --verbose --origin=flatpak --prefix=/ \
-            --components=io.github.multiclauds.clauds-kde,io.github.multiclauds.clauds-kde.desktop \
-            --result-root=/tmp/compose-out --data-dir=/tmp/compose-out/data --icons-dir=/tmp/compose-out/icons \
-            build-flatpak/app/files || true
-          find /tmp/compose-out -name '*.yml' -o -name '*.json' | xargs -r cat
-
-      - name: Name the bundle after the version
-        if: steps.version.outputs.skip != 'true'
-        id: bundle
-        run: |
-          bundle="io.github.multiclauds.clauds-kde-${{ steps.version.outputs.version }}.flatpak"
-          cp build-flatpak/io.github.multiclauds.clauds-kde.flatpak "$bundle"
-          echo "path=$bundle" >> "$GITHUB_OUTPUT"
+      - name: Check that the apt repository builds (unsigned)
+        run: scripts/build-apt-repo.sh build-apt build-kde/clauds_*.deb
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: steps.version.outputs.skip != 'true'
         with:
-          name: clauds-kde-flatpak
-          path: ${{ steps.bundle.outputs.path }}
+          name: clauds-deb
+          path: build-kde/clauds_*.deb
+
+  release:
+    needs: [version, deb]
+    if: needs.version.outputs.skip != 'true' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write   # creates the tag and the release
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: clauds-deb
+          path: dist
 
       - name: Tag and publish the release
-        if: steps.version.outputs.skip != 'true' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
-          BUNDLE: ${{ steps.bundle.outputs.path }}
+          VERSION: ${{ needs.version.outputs.version }}
         run: |
-          gh release create "v$VERSION" "$BUNDLE" \
+          gh release create "v$VERSION" dist/clauds_*.deb \
+            --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Clauds KDE $VERSION" \
             --generate-notes
+
+  # A release made with GITHUB_TOKEN does not start other workflows, so the apt repository is
+  # rebuilt here, by calling the Pages workflow.
+  apt-repo:
+    needs: release
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+    secrets: inherit
