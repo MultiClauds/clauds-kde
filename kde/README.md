@@ -29,7 +29,7 @@ sudo apt install cmake g++ extra-cmake-modules qt6-base-dev qt6-declarative-dev 
   libkf6statusnotifieritem-dev libkf6notifications-dev libkf6coreaddons-dev libkf6colorscheme-dev \
   qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-org-kde-desktop
 
-git clone https://github.com/MultiClauds/clauds-kde.git
+git clone https://github.com/LemcheNET/clauds-kde.git
 cd clauds-kde
 cmake -S kde -B build-kde -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build-kde -j

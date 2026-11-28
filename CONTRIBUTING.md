@@ -13,7 +13,7 @@ Thank you for your help. This is a small project. Small, clear changes are the e
 You need Kubuntu 25.04 or later (or another distribution with Qt 6.4+ and KDE Frameworks 6).
 
 ```bash
-git clone https://github.com/MultiClauds/clauds-kde.git
+git clone https://github.com/LemcheNET/clauds-kde.git
 cd clauds-kde
 make deps    # build dependencies (sudo apt)
 make test    # configure, build, run the test suites

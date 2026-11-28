@@ -13,7 +13,7 @@ Only the newest version on the `main` branch gets security fixes, until there is
 
 Use GitHub private vulnerability reporting:
 
-1. Go to <https://github.com/MultiClauds/clauds-kde/security/advisories/new>.
+1. Go to <https://github.com/LemcheNET/clauds-kde/security/advisories/new>.
 2. Describe the problem, the steps to reproduce it, and the effect.
 
 You can expect a first answer in 7 days. When the fix is released, the report is published with
