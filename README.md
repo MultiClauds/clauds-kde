@@ -100,16 +100,20 @@ Every merge to `main` makes a release. The `.deb` goes to the
 [latest release](https://github.com/LemcheNET/clauds-kde/releases/latest) and to a signed apt
 repository, so apt installs it and updates it with the rest of your system.
 
-**From the apt repository** (Kubuntu 26.04, amd64):
+**From the LemcheNET apt repository** (Kubuntu 26.04, amd64):
 
 ```bash
-sudo curl -fsSLo /usr/share/keyrings/clauds-archive-keyring.gpg \
-  https://products.lemche.net/clauds-kde/apt/clauds-archive-keyring.gpg
-sudo curl -fsSLo /etc/apt/sources.list.d/clauds.sources \
-  https://products.lemche.net/clauds-kde/apt/clauds.sources
+curl -fsSLO https://products.lemche.net/apt/lemchenet-archive-keyring.deb
+sudo apt install ./lemchenet-archive-keyring.deb
 sudo apt update
 sudo apt install clauds
 ```
+
+The `lemchenet-archive-keyring` package adds the
+[repository that serves all LemcheNET products](https://products.lemche.net/#apt) and the key
+that signs it. If you added the Clauds-only repository (`clauds.sources`) before, it keeps
+working, or remove it with
+`sudo rm /etc/apt/sources.list.d/clauds.sources /usr/share/keyrings/clauds-archive-keyring.gpg`.
 
 The apt repository serves the `.deb` of the last five releases.
 
@@ -301,8 +305,8 @@ When there are no live numbers, the card says why:
   and it must find, quit, and start Claude. Read the code before you run it. The port is about
   3,800 lines.
 - **The apt repository is signed.** apt checks every update against the key in
-  `/usr/share/keyrings/clauds-archive-keyring.gpg`, and the repository is used only for packages
-  that come from it (`Signed-By`).
+  `/usr/share/keyrings/lemchenet-archive-keyring.gpg`, and that key is trusted only for this
+  repository (`Signed-By`), not for your other sources.
 
 To report a security problem, read [SECURITY.md](SECURITY.md).
 
@@ -366,8 +370,9 @@ goes away.
 3. Click the account that you want to keep in the Claude app. It becomes the current account.
 4. Turn off **More > Start at Login**.
 5. Quit Clauds and remove the package: `make uninstall`, or `sudo apt remove clauds`.
-   To also remove the apt repository:
-   `sudo rm /etc/apt/sources.list.d/clauds.sources /usr/share/keyrings/clauds-archive-keyring.gpg`.
+   To also remove the apt repository: `sudo apt purge lemchenet-archive-keyring`
+   (and, if you added the older Clauds-only repository,
+   `sudo rm /etc/apt/sources.list.d/clauds.sources /usr/share/keyrings/clauds-archive-keyring.gpg`).
 
 The folder `~/.local/share/clauds` still holds the saved data of your other accounts, and sessions
 that no account owns. Make a backup of it before you delete it:

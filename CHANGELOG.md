@@ -11,6 +11,9 @@ The KDE Plasma port, in [`kde/`](kde/). Its version is 0.1.0 and it has no relea
 
 ### Changed
 
+- Clauds is also in the shared LemcheNET apt repository on https://products.lemche.net/apt,
+  which one `lemchenet-archive-keyring` package adds together with its key. Every release
+  starts a rebuild of that repository. The Clauds-only repository keeps getting every release.
 - Clauds ships only as a `.deb` now. The Flatpak is gone: it pulled in the KDE runtime and the Qt
   WebEngine base, which took far more disk space than the app. Every release attaches `clauds_<version>_amd64.deb` and
   publishes it to a signed apt repository on https://products.lemche.net/clauds-kde/apt, so
