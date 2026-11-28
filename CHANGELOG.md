@@ -11,6 +11,13 @@ The KDE Plasma port, in [`kde/`](kde/). Its version is 0.1.0 and it has no relea
 
 ### Changed
 
+- Clauds ships only as a `.deb` now. The Flatpak is gone: it pulled in the KDE runtime and the Qt
+  WebEngine base, which took far more disk space than the app. Every release attaches `clauds_<version>_amd64.deb` and
+  publishes it to a signed apt repository on https://products.lemche.net/clauds-kde/apt, so
+  `apt upgrade` installs new versions. `make apt-repo` builds the repository locally.
+  To move from the Flatpak: `flatpak uninstall io.github.multiclauds.clauds-kde`, then follow the
+  apt steps in the README. Your accounts stay in `~/.local/share/clauds`.
+
 - The Flatpak app ID is now `io.github.multiclauds.clauds-kde` (it was `io.github.atterdag.clauds`).
   The desktop file, the Start at Login entry and the bundle name use it. `make flatpak` writes
   `build-flatpak/io.github.multiclauds.clauds-kde.flatpak`.
@@ -54,6 +61,13 @@ The KDE Plasma port, in [`kde/`](kde/). Its version is 0.1.0 and it has no relea
   pinned by commit.
 
 ### Changed
+
+- Clauds ships only as a `.deb` now. The Flatpak is gone: it pulled in the KDE runtime and the Qt
+  WebEngine base, which took far more disk space than the app. Every release attaches `clauds_<version>_amd64.deb` and
+  publishes it to a signed apt repository on https://products.lemche.net/clauds-kde/apt, so
+  `apt upgrade` installs new versions. `make apt-repo` builds the repository locally.
+  To move from the Flatpak: `flatpak uninstall io.github.multiclauds.clauds-kde`, then follow the
+  apt steps in the README. Your accounts stay in `~/.local/share/clauds`.
 
 - The README, `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md` and the issue and pull request forms
   describe the KDE port. The macOS app is kept as it is upstream.

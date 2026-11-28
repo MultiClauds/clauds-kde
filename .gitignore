@@ -12,5 +12,6 @@ usage-debug.json
 .vscode/
 .idea/
 .claude/
+build-apt/
 build-flatpak/
 .flatpak-builder/

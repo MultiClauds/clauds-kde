@@ -74,56 +74,25 @@ run: build ## Build, then start Clauds from the build folder
 
 .PHONY: deb
 deb: build ## Build the .deb package in $(BUILD_DIR)
-	rm -f $(BUILD_DIR)/clauds-*.deb
+	rm -f $(BUILD_DIR)/clauds_*.deb $(BUILD_DIR)/clauds-*.deb
 	cd $(BUILD_DIR) && $(CPACK) -G DEB
 
 .PHONY: install
 install: deb ## Build the .deb and install it (uses sudo apt)
-	$(SUDO) apt install ./$(BUILD_DIR)/clauds-*.deb
+	$(SUDO) apt install ./$(BUILD_DIR)/clauds_*.deb
 
 .PHONY: uninstall
 uninstall: ## Remove the installed package (uses sudo apt)
 	$(SUDO) apt remove clauds
 
 .PHONY: clean
-clean: ## Delete the build folders (.deb and Flatpak)
-	rm -rf $(BUILD_DIR) $(FLATPAK_BUILD)
+clean: ## Delete the build folder
+	rm -rf $(BUILD_DIR) $(APT_REPO_DIR)
 
-# ---- Flatpak (see kde/packaging/flatpak) ----
+# ---- apt repository (see scripts/build-apt-repo.sh) ----
 
-FLATPAK_ID       := io.github.multiclauds.clauds-kde
-FLATPAK_MANIFEST := kde/packaging/flatpak/$(FLATPAK_ID).yml
-FLATPAK_BUILD    ?= build-flatpak
-FLATPAK_REPO     ?= $(FLATPAK_BUILD)/repo
-FLATPAK_BUNDLE   ?= $(FLATPAK_BUILD)/$(FLATPAK_ID).flatpak
-FLATPAK_BRANCH   ?= 6.10
-FLATPAK_BUILDER  ?= flatpak-builder
+APT_REPO_DIR ?= build-apt
 
-.PHONY: flatpak-runtime
-flatpak-runtime: ## Install only the KDE runtime, SDK and Qt WebEngine base (no sudo, for CI)
-	flatpak install --user --noninteractive flathub \
-		org.kde.Platform//$(FLATPAK_BRANCH) org.kde.Sdk//$(FLATPAK_BRANCH) \
-		io.qt.qtwebengine.BaseApp//$(FLATPAK_BRANCH)
-
-.PHONY: flatpak-deps
-flatpak-deps: ## Install flatpak-builder, the KDE runtime, SDK and Qt WebEngine base (sudo apt, flathub)
-	$(SUDO) apt install flatpak flatpak-builder
-	$(MAKE) flatpak-runtime
-
-.PHONY: flatpak
-flatpak: ## Build the Flatpak and write build-flatpak/io.github.multiclauds.clauds-kde.flatpak
-	$(FLATPAK_BUILDER) --user --force-clean --state-dir=$(FLATPAK_BUILD)/state \
-		--repo=$(FLATPAK_REPO) $(FLATPAK_BUILD)/app $(FLATPAK_MANIFEST)
-	flatpak build-bundle $(FLATPAK_REPO) $(FLATPAK_BUNDLE) $(FLATPAK_ID)
-
-.PHONY: flatpak-install
-flatpak-install: flatpak ## Build the Flatpak and install it for your user
-	flatpak install --user --noninteractive --reinstall $(FLATPAK_BUNDLE)
-
-.PHONY: flatpak-run
-flatpak-run: ## Start the installed Flatpak
-	flatpak run $(FLATPAK_ID)
-
-.PHONY: flatpak-uninstall
-flatpak-uninstall: ## Remove the installed Flatpak (keeps your data folders)
-	flatpak uninstall --user --noninteractive $(FLATPAK_ID)
+.PHONY: apt-repo
+apt-repo: deb ## Build an apt repository with the .deb in $(APT_REPO_DIR) (signs it if APT_SIGNING_KEY_ID is set)
+	scripts/build-apt-repo.sh $(APT_REPO_DIR) $(BUILD_DIR)/clauds_*.deb

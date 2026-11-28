@@ -91,7 +91,7 @@
         one Claude data folder per account, so a switch takes one click and no account is ever signed out.
         No more email codes every time you go from work to personal.</p>
       <div class="cta">
-        <a class="btn primary" href="https://github.com/LemcheNET/clauds-kde/releases/latest">Download the Flatpak</a>
+        <a class="btn primary" href="#install">Install with apt</a>
         <a class="btn secondary" href="https://github.com/LemcheNET/clauds-kde">Source on GitHub</a>
       </div>
     </div>
@@ -122,17 +122,20 @@
     <p class="sub">For KDE Plasma 6 with <a href="https://claude.com/download">Claude Desktop for Linux</a> installed.
       Clauds is an early version (0.x): make a backup of <code>~/.config/Claude</code> before your first switch.</p>
     <ol class="steps">
-      <li><strong>Install the Flatpak</strong>Download <code>io.github.multiclauds.clauds-kde-&lt;version&gt;.flatpak</code> from the
-        <a href="https://github.com/LemcheNET/clauds-kde/releases/latest">latest release</a>, then:
-        <pre><code>flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install --user io.github.multiclauds.clauds-kde-*.flatpak</code></pre>
-        It needs the KDE runtime from Flathub and uses the Claude desktop app that is already on your computer.</li>
+      <li><strong>Add the apt repository and install</strong>On Kubuntu 26.04 (amd64), run:
+        <pre><code>sudo curl -fsSLo /usr/share/keyrings/clauds-archive-keyring.gpg \
+  https://products.lemche.net/clauds-kde/apt/clauds-archive-keyring.gpg
+sudo curl -fsSLo /etc/apt/sources.list.d/clauds.sources \
+  https://products.lemche.net/clauds-kde/apt/clauds.sources
+sudo apt update &amp;&amp; sudo apt install clauds</code></pre>
+        New versions then arrive with your normal system updates. The package is about 5 MB and uses the
+        Claude desktop app that is already on your computer.</li>
       <li><strong>Start Clauds</strong>from your application menu. The icon appears in the system tray. Click it, then
         <em>Save Current Claude Login as Account…</em> to keep the account you are signed in to now.</li>
       <li><strong>Add your other accounts</strong>Click <em>Add Account</em>, sign in once for the live usage numbers and once
         in Claude. From then on, every account stays signed in.</li>
     </ol>
-    <p class="sub" style="margin-top:28px">Prefer a <code>.deb</code>? Build it from source on Kubuntu:</p>
+    <p class="sub" style="margin-top:28px">Prefer to build it yourself? Build the <code>.deb</code> from source on Kubuntu:</p>
     <pre style="max-width:760px"><code>git clone https://github.com/LemcheNET/clauds-kde.git
 cd clauds-kde
 make deps &amp;&amp; make test &amp;&amp; make install</code></pre>
@@ -160,7 +163,7 @@ make deps &amp;&amp; make test &amp;&amp; make install</code></pre>
         menu bar app by Razvan Tanase. Use the original for macOS.</dd>
       <dt>How do I remove it?</dt>
       <dd>Turn off Side by Side and Share Code Sessions, pick the account to keep, then
-        <code>flatpak uninstall io.github.multiclauds.clauds-kde</code> (or <code>sudo apt remove clauds</code>).
+        <code>sudo apt remove clauds</code>.
         The <a href="https://github.com/LemcheNET/clauds-kde#uninstall">uninstall steps</a> explain why the order matters.</dd>
     </dl>
   </div>

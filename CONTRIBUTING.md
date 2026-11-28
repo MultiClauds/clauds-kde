@@ -74,9 +74,9 @@ Send your pull request to `main`.
 
 The version follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). **Every merge to
 `main` is a release.** The workflow [`release.yml`](.github/workflows/release.yml) picks the next
-version with [`scripts/next-version.sh`](scripts/next-version.sh), builds the Flatpak with it,
-creates the tag `v<version>` and attaches `io.github.multiclauds.clauds-kde-<version>.flatpak` to a
-GitHub release.
+version with [`scripts/next-version.sh`](scripts/next-version.sh), builds the `.deb` with it on
+Ubuntu 26.04, creates the tag `v<version>`, attaches `clauds_<version>_amd64.deb` to a GitHub
+release and rebuilds the apt repository (the workflow [`pages.yml`](.github/workflows/pages.yml)).
 
 The bump comes from the titles of the commits since the last tag:
 
@@ -93,7 +93,27 @@ The first release uses the number in `VERSION`.
 - The file [`VERSION`](VERSION) is the only place that holds the version. Local builds use it. The
   release workflow writes the release version into it before it builds.
 - Put `[skip release]` in the merge commit message to merge without a release.
-- Local build of the Flatpak: `make flatpak` writes `build-flatpak/io.github.multiclauds.clauds-kde.flatpak`.
+- Local build of the apt repository: `make apt-repo` writes an unsigned repository to `build-apt/`.
+
+### The apt repository
+
+`pages.yml` deploys `site/` to https://products.lemche.net/clauds-kde/ and builds the apt
+repository in `apt/` with [`scripts/build-apt-repo.sh`](scripts/build-apt-repo.sh). It takes the
+`.deb` of the last five releases from GitHub, so a deploy of the site alone keeps the repository.
+
+The repository is signed with a key that is used for nothing else. It lives in the repository
+secret `APT_SIGNING_KEY` (armored, no passphrase). The workflow publishes the public half as
+`apt/clauds-archive-keyring.gpg`. To make the key once:
+
+```bash
+export GNUPGHOME=$(mktemp -d)
+gpg --batch --pinentry-mode loopback --passphrase '' --quick-gen-key "Clauds apt repository" ed25519 sign 0
+gpg --armor --export-secret-keys | gh secret set APT_SIGNING_KEY --repo LemcheNET/clauds-kde
+gpg --armor --export > clauds-archive-key.asc   # keep a copy of the public key
+rm -rf "$GNUPGHOME"
+```
+
+If you replace the key, every user must download the new `clauds-archive-keyring.gpg` once.
 
 ## Sign your commits (DCO)
 

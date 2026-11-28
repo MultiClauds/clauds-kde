@@ -107,21 +107,9 @@ tar -czf ~/claude-backup.tgz -C ~/.config Claude -C ~/.local/share clauds
 - Test hooks: `clauds --link-sessions <data dir> <shared dir> [tag]`, `--unlink-sessions …`,
   `--render-panel <png>` (with `QT_QPA_PLATFORM=offscreen`), `--show-panel`.
 
-## Flatpak
+## Packaging
 
-The Flatpak (experimental) has the app ID `io.github.multiclauds.clauds-kde`. A release has it as
-`io.github.multiclauds.clauds-kde-<version>.flatpak`. To build it yourself:
-
-```bash
-make flatpak-deps       # flatpak-builder, the KDE 6.10 runtime, SDK and Qt WebEngine base
-make flatpak            # writes build-flatpak/io.github.multiclauds.clauds-kde.flatpak
-make flatpak-install    # builds, then installs for your user
-make flatpak-run
-```
-
-The sandbox opens the real `~/.config/Claude`, `~/.local/share/clauds`, the Trash and the autostart
-folder, and it may talk to `org.freedesktop.Flatpak`. Claude Desktop is a host program, so the app
-finds, quits and starts it with `flatpak-spawn --host`. Flatpak sets `XDG_DATA_HOME` to
-`~/.var/app/<id>/data` whatever the manifest says, so the app uses `~/.local/share` and
-`~/.config` of your home folder instead. Flatpak creates `~/.local/share/clauds`, the Trash and the
-autostart folder on the host if they are missing, so the app sees the same folders as the host.
+The app ships only as a `.deb` (`cpack -G DEB`, see `kde/CMakeLists.txt`). `make deb` writes
+`build-kde/clauds_<version>_amd64.deb`. The release workflow builds it on Ubuntu 26.04 and puts it
+in the apt repository on https://products.lemche.net/clauds-kde/apt. `make apt-repo` builds the same
+repository layout locally in `build-apt/` (see `scripts/build-apt-repo.sh`).

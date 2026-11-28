@@ -1,11 +1,18 @@
 name: Pages
 
-# Deploys the website (site/) to https://products.lemche.net/clauds-kde/.
+# Deploys the website (site/) to https://products.lemche.net/clauds-kde/, with the signed apt
+# repository in apt/. The repository holds the .deb of the last releases (APT_KEEP), taken from
+# the GitHub releases, so every deploy rebuilds it in full.
+#
+# Needs the repository secret APT_SIGNING_KEY: an armored GnuPG secret key without a passphrase,
+# used only to sign this repository. See CONTRIBUTING.md#the-apt-repository.
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    paths: ['site/**', 'scripts/build-apt-repo.sh', '.github/workflows/pages.yml']
   workflow_dispatch:
+  # release.yml calls this after each release.
+  workflow_call:
 
 permissions:
   contents: read
@@ -14,11 +21,15 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  APT_KEEP: 5
+
 jobs:
   deploy:
-    name: Deploy site
+    name: Deploy site and apt repository
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
@@ -28,6 +39,47 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Install the repository tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dpkg-dev apt-utils gnupg
+
+      - name: Download the .deb of the last releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p debs
+          for tag in $(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases \
+                         --limit "$APT_KEEP" --json tagName -q '.[].tagName'); do
+            # Releases from before the switch to .deb have only a Flatpak.
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern 'clauds_*.deb' --dir debs \
+              || echo "$tag has no .deb"
+          done
+          ls -l debs
+
+      - name: Build and sign the apt repository
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+        run: |
+          shopt -s nullglob
+          debs=(debs/clauds_*.deb)
+          if [ ${#debs[@]} -eq 0 ]; then
+            echo "::warning::No release has a .deb yet, so the site has no apt repository."
+            exit 0
+          fi
+          if [ -z "$APT_SIGNING_KEY" ]; then
+            echo "::error::The secret APT_SIGNING_KEY is missing. apt refuses an unsigned repository."
+            exit 1
+          fi
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -m 700 "$GNUPGHOME"
+          printf '%s\n' "$APT_SIGNING_KEY" | gpg --batch --import
+          APT_SIGNING_KEY_ID=$(gpg --batch --list-secret-keys --with-colons | awk -F: '/^fpr/ {print $10; exit}')
+          export APT_SIGNING_KEY_ID
+          scripts/build-apt-repo.sh site/apt "${debs[@]}"
+          rm -rf "$GNUPGHOME"
+
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
