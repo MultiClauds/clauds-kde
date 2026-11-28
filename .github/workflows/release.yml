@@ -119,6 +119,21 @@ jobs:
             --title "Clauds KDE $VERSION" \
             --generate-notes
 
+      - name: Add the release to the LemcheNET apt repository
+        env:
+          # Fine-grained token with Contents: read and write on LemcheNET/lemchenet.github.io only.
+          TAG: v${{ needs.version.outputs.version }}
+          GH_TOKEN: ${{ secrets.LEMCHENET_APT_DISPATCH_TOKEN }}
+        # The nightly rebuild of products.lemche.net/apt picks the release up if this fails.
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::LEMCHENET_APT_DISPATCH_TOKEN is not set: the release reaches products.lemche.net/apt at the nightly rebuild."
+            exit 0
+          fi
+          gh api repos/LemcheNET/lemchenet.github.io/dispatches -f event_type=apt-release \
+            -f "client_payload[repository]=$GITHUB_REPOSITORY" -f "client_payload[tag]=$TAG" \
+            || echo "::warning::The dispatch failed: the release reaches products.lemche.net/apt at the nightly rebuild."
+
   # A release made with GITHUB_TOKEN does not start other workflows, so the apt repository is
   # rebuilt here, by calling the Pages workflow.
   apt-repo:
