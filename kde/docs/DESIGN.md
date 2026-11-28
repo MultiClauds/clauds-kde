@@ -1,7 +1,7 @@
 # Clauds for KDE Plasma: port design
 
 Status: first working build, not yet tested against a real Claude Desktop on Kubuntu.
-Scope: the `kde/` folder of the `MultiClauds/clauds-kde` repository. The original macOS Swift app is not part of this repository.
+Scope: the `kde/` folder of the `LemcheNET/clauds-kde` repository. The original macOS Swift app is not part of this repository.
 
 ## 1. Decision
 

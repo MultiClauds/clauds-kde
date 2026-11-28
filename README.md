@@ -9,10 +9,12 @@
   Every account stays signed in.
 </p>
 
+<p align="center"><a href="https://products.lemche.net/clauds-kde/"><strong>products.lemche.net/clauds-kde</strong></a></p>
+
 <p align="center">
-  <a href="https://github.com/MultiClauds/clauds-kde/actions/workflows/kde.yml"><img src="https://github.com/MultiClauds/clauds-kde/actions/workflows/kde.yml/badge.svg" alt="KDE port build"></a>
-  <a href="https://github.com/MultiClauds/clauds-kde/releases/latest"><img src="https://img.shields.io/github/v/release/MultiClauds/clauds-kde?label=release" alt="Latest release"></a>
-  <a href="https://github.com/MultiClauds/clauds-kde/actions/workflows/codeql.yml"><img src="https://github.com/MultiClauds/clauds-kde/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://github.com/LemcheNET/clauds-kde/actions/workflows/kde.yml"><img src="https://github.com/LemcheNET/clauds-kde/actions/workflows/kde.yml/badge.svg" alt="KDE port build"></a>
+  <a href="https://github.com/LemcheNET/clauds-kde/releases/latest"><img src="https://img.shields.io/github/v/release/LemcheNET/clauds-kde?label=release" alt="Latest release"></a>
+  <a href="https://github.com/LemcheNET/clauds-kde/actions/workflows/codeql.yml"><img src="https://github.com/LemcheNET/clauds-kde/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/KDE%20Plasma-6-1d99f3.svg" alt="KDE Plasma 6">
   <img src="https://img.shields.io/badge/Qt-6-41cd52.svg" alt="Qt 6">
@@ -99,7 +101,7 @@ This takes a few minutes.
 
 **Flatpak, from a release** (experimental): download
 `io.github.multiclauds.clauds-kde-<version>.flatpak` from the
-[latest release](https://github.com/MultiClauds/clauds-kde/releases/latest), then:
+[latest release](https://github.com/LemcheNET/clauds-kde/releases/latest), then:
 
 ```bash
 flatpak install --user io.github.multiclauds.clauds-kde-<version>.flatpak
@@ -113,7 +115,7 @@ it on the host. It works on your real `~/.config/Claude` and `~/.local/share/cla
 **Build from source:**
 
 ```bash
-git clone https://github.com/MultiClauds/clauds-kde.git
+git clone https://github.com/LemcheNET/clauds-kde.git
 cd clauds-kde
 make deps       # build dependencies (sudo apt)
 make test       # configure, build, run the test suites

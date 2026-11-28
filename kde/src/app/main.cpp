@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     KAboutData about(QStringLiteral("clauds"), QStringLiteral("Clauds"), QStringLiteral(CLAUDS_VERSION),
                      QStringLiteral("Switches the Claude desktop app between accounts"), KAboutLicense::MIT,
                      QStringLiteral("© 2026 Razvan Tanase (Clauds), KDE port contributors"));
-    about.setHomepage(QStringLiteral("https://github.com/MultiClauds/clauds-kde"));
+    about.setHomepage(QStringLiteral("https://products.lemche.net/clauds-kde/"));
     about.setDesktopFileName(QStringLiteral("io.github.multiclauds.clauds-kde"));
     KAboutData::setApplicationData(about);
 #endif

@@ -1,7 +1,7 @@
 # Support
 
 - **Question or problem:** read the [README](README.md) first, mainly "Troubleshooting" and "Limits".
-- **Bug:** open an issue with the bug form: <https://github.com/MultiClauds/clauds-kde/issues/new/choose>.
+- **Bug:** open an issue with the bug form: <https://github.com/LemcheNET/clauds-kde/issues/new/choose>.
 - **Idea:** open an issue with the feature form.
 - **Security problem:** read [SECURITY.md](SECURITY.md). Do not open a public issue.
 

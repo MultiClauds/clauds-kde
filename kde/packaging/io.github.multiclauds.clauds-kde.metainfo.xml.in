@@ -14,5 +14,7 @@
     <release version="@PROJECT_VERSION@" date="@CLAUDS_RELEASE_DATE@"/>
   </releases>
   <launchable type="desktop-id">io.github.multiclauds.clauds-kde.desktop</launchable>
-  <url type="homepage">https://github.com/MultiClauds/clauds-kde</url>
+  <url type="homepage">https://products.lemche.net/clauds-kde/</url>
+  <url type="bugtracker">https://github.com/LemcheNET/clauds-kde/issues</url>
+  <url type="vcs-browser">https://github.com/LemcheNET/clauds-kde</url>
 </component>

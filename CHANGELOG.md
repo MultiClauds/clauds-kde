@@ -105,5 +105,5 @@ First release with the name Clauds.
 - Data from the first app name ("Claude Switcher") moves to the new folder at the first start
   while Claude is closed.
 
-[Unreleased]: https://github.com/MultiClauds/clauds-kde/commits/main
+[Unreleased]: https://github.com/LemcheNET/clauds-kde/commits/main
 [1.0.0]: https://github.com/codeFi/clauds/releases/tag/v1.0.0
